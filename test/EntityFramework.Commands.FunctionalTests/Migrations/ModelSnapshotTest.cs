@@ -189,7 +189,6 @@ builder.Entity(""Microsoft.Data.Entity.Commands.Migrations.ModelSnapshotTest+Ent
     {
         b.Property<int>(""Id"")
             .GenerateValueOnAdd()
-            .StoreGeneratedPattern(StoreGeneratedPattern.Identity)
             .Annotation(""OriginalValueIndex"", 0);
         
         b.Property<int>(""AlternateId"")
@@ -725,6 +724,7 @@ builder.Entity(""Microsoft.Data.Entity.Commands.Migrations.ModelSnapshotTest+Ent
     {
         b.Property<string>(""Id"")
             .GenerateValueOnAdd()
+            .Required()
             .Annotation(""OriginalValueIndex"", 0);
         
         b.Key(""Id"");
@@ -776,6 +776,7 @@ builder.Entity(""Microsoft.Data.Entity.Commands.Migrations.ModelSnapshotTest+Ent
     {
         b.Property<string>(""Id"")
             .GenerateValueOnAdd()
+            .Required()
             .Annotation(""OriginalValueIndex"", 0);
         
         b.Key(""Id"");

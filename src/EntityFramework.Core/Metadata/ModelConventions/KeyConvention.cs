@@ -19,6 +19,7 @@ namespace Microsoft.Data.Entity.Metadata.ModelConventions
             var entityTypeBuilder = keyBuilder.ModelBuilder.Entity(keyBuilder.Metadata.EntityType.Name, ConfigurationSource.Convention);
             var properties = keyBuilder.Metadata.Properties;
 
+            SetRequired(entityTypeBuilder, properties);
             SetValueGeneration(entityTypeBuilder, properties);
             SetIdentity(entityTypeBuilder, properties);
 
@@ -32,6 +33,23 @@ namespace Microsoft.Data.Entity.Metadata.ModelConventions
 
             SetValueGeneration(entityTypeBuilder, foreignKey.Properties);
             SetIdentity(entityTypeBuilder, foreignKey.Properties);
+        }
+
+        protected virtual void SetRequired(
+            [NotNull] InternalEntityTypeBuilder entityTypeBuilder,
+            [NotNull] IReadOnlyList<Property> properties)
+        {
+            Check.NotNull(entityTypeBuilder, nameof(entityTypeBuilder));
+            Check.NotNull(properties, nameof(properties));
+
+            if (entityTypeBuilder.Metadata.FindPrimaryKey(properties) != null)
+            {
+                foreach (var property in properties)
+                {
+                    entityTypeBuilder.Property(property.ClrType, property.Name, ConfigurationSource.Convention)
+                        ?.Required(true, ConfigurationSource.Convention);
+                }
+            }
         }
 
         protected virtual void SetValueGeneration(

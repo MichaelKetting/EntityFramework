@@ -25,6 +25,8 @@ namespace Microsoft.Data.Entity.Tests.Metadata.ModelConventions
             public int SampleEntityId { get; set; }
         }
 
+        #region GenerateValueOnAdd
+
         [Fact]
         public void GenerateValueOnAdd_flag_is_set_for_key_properties()
         {
@@ -207,6 +209,10 @@ namespace Microsoft.Data.Entity.Tests.Metadata.ModelConventions
             Assert.True(keyProperties[0].GenerateValueOnAdd);
         }
 
+        #endregion
+
+        #region Identity
+
         [Fact]
         public void Identity_is_set_for_primary_key()
         {
@@ -348,6 +354,91 @@ namespace Microsoft.Data.Entity.Tests.Metadata.ModelConventions
             Assert.Equal(StoreGeneratedPattern.Identity, property.StoreGeneratedPattern);
 
         }
+
+        #endregion
+
+        #region Required
+
+        [Fact]
+        public void Required_is_set_for_primary_key()
+        {
+            var modelBuilder = CreateInternalModelBuilder();
+            var entityBuilder = modelBuilder.Entity(typeof(SampleEntity), ConfigurationSource.Convention);
+
+            var keyBuilder = entityBuilder.PrimaryKey(new List<string> { "Name" }, ConfigurationSource.Convention);
+
+            Assert.Same(keyBuilder, new KeyConvention().Apply(keyBuilder));
+
+            var property = keyBuilder.Metadata.Properties.First();
+
+            Assert.False(property.IsNullable);
+        }
+
+        [Fact]
+        public void Required_is_not_set_for_non_primary_key()
+        {
+            var modelBuilder = CreateInternalModelBuilder();
+            var entityBuilder = modelBuilder.Entity(typeof(SampleEntity), ConfigurationSource.Convention);
+
+            var keyBuilder = entityBuilder.Key(new List<string> { "Name" }, ConfigurationSource.Convention);
+
+            Assert.Same(keyBuilder, new KeyConvention().Apply(keyBuilder));
+
+            var property = keyBuilder.Metadata.Properties.First();
+
+            Assert.Null(property.IsNullable);
+        }
+
+        [Fact]
+        public void Required_is_set_when_composite_primary_key()
+        {
+            var modelBuilder = CreateInternalModelBuilder();
+            var entityBuilder = modelBuilder.Entity(typeof(SampleEntity), ConfigurationSource.Convention);
+
+            var keyBuilder = entityBuilder.PrimaryKey(new List<string> { "Id", "Number" }, ConfigurationSource.Convention);
+
+            Assert.Same(keyBuilder, new KeyConvention().Apply(keyBuilder));
+
+            var keyProperties = keyBuilder.Metadata.Properties;
+
+            Assert.False(keyProperties[0].IsNullable);
+            Assert.False(keyProperties[1].IsNullable);
+        }
+
+        [Fact]
+        public void Convention_does_not_override_required_when_configured_explicitly()
+        {
+            var modelBuilder = CreateInternalModelBuilder();
+            var entityBuilder = modelBuilder.Entity(typeof(SampleEntity), ConfigurationSource.Convention);
+
+            entityBuilder.Property(typeof(string), "Name", ConfigurationSource.Convention)
+                .Required(false, ConfigurationSource.Explicit);
+
+            var keyBuilder = entityBuilder.PrimaryKey(new List<string> { "Name" }, ConfigurationSource.Convention);
+
+            Assert.Same(keyBuilder, new KeyConvention().Apply(keyBuilder));
+
+            var property = keyBuilder.Metadata.Properties.First();
+
+            Assert.True(property.IsNullable);
+        }
+
+        [Fact]
+        public void Required_is_set_when_setting_existing_key_as_primary_key()
+        {
+            var modelBuilder = CreateInternalModelBuilder();
+            var entityBuilder = modelBuilder.Entity(typeof(SampleEntity), ConfigurationSource.Convention);
+
+            var keyBuilder = entityBuilder.Key(new List<string> { "Name" }, ConfigurationSource.Convention);
+
+            entityBuilder.PrimaryKey(new List<string> { "Name" }, ConfigurationSource.Convention);
+
+            var property = keyBuilder.Metadata.Properties.First();
+
+            Assert.False(property.IsNullable);
+        }
+
+        #endregion
 
         private static InternalModelBuilder CreateInternalModelBuilder()
         {
